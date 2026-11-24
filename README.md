@@ -21,8 +21,8 @@ Browser memakai HTTPS melalui preview Cloud9. Preview meneruskan koneksi ke port
 
 ## Dokumentasi
 
-- [Design brief PDF](<docs/542739_Stella Florencia Doulim_CC.pdf>)
-- [Design brief Word](<docs/542739_Stella Florencia Doulim_CC.docx>)
+- [Design brief PDF](docs/542739_Stella%20Florencia%20Doulim_CC.pdf)
+- [Unduh design brief Word](https://raw.githubusercontent.com/StellaFD/kostcycle/main/docs/542739_Stella%20Florencia%20Doulim_CC.docx)
 - [Diagram arsitektur](docs/arsitektur-kostcycle.png)
 - [Bukti AWS PDF](docs/Bukti_AWS_KostCycle.pdf) dan [screenshot serta hasil tes](docs/evidence/README.md)
 
@@ -192,7 +192,7 @@ Arsitektur terdiri dari dua layanan pada EC2 dan satu RDS private. Image masing-
 
 ![Arsitektur KostCycle](docs/arsitektur-kostcycle.png)
 
-[Diagram yang dapat diedit](docs/arsitektur-kostcycle.svg). Ikon layanan menggunakan [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/).
+[Diagram yang dapat diedit](docs/arsitektur-kostcycle.svg).
 
 Cloud9 `KostCycleIDE` menyediakan lingkungan pengembangan dan jalur preview terautentikasi. Compute aplikasi tetap satu EC2 Amazon Linux 2023 bertipe t3.small di Public Subnet1, LabVPC. Kedua backend berjalan dalam container berbeda pada EC2 yang sama; penyimpanan data berada pada RDS MySQL terpisah. Frontend disajikan oleh catalog, sehingga tidak memerlukan server frontend tambahan.
 
