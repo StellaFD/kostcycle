@@ -11,6 +11,14 @@ Platform jual dan berbagi barang antarpenghuni kos. Barang lama, cerita baru.
 
 [CI berhasil untuk commit 3c5b2c9](https://github.com/StellaFD/kostcycle/actions/runs/45451460895): tes aplikasi dan build dua image.
 
+## Membuka demo AWS
+
+1. Masuk ke AWS Academy Learner Lab dan buka AWS Console dari sesi lab yang aktif.
+2. Buka lingkungan Cloud9 `KostCycleIDE` dan pastikan EC2 serta kedua container aplikasi berjalan.
+3. Buka [KostCycle](https://53d11ecee3fb4bd1b939f5dd1612dd54.vfs.cloud9.us-east-1.amazonaws.com/) pada tab tersendiri. Gunakan tombol akun demo Alya atau Bima untuk mencoba aplikasi dengan data contoh.
+
+Browser memakai HTTPS melalui preview Cloud9. Preview meneruskan koneksi ke port `8080` pada EC2, lalu Docker memetakannya ke port `8000` milik catalog. Alamat IP publik EC2 dengan port 8080 tidak dapat digunakan untuk akses langsung karena port tersebut tidak dibuka dari internet.
+
 ## Dokumentasi
 
 - [Design brief PDF](<docs/542739_Stella Florencia Doulim_CC.pdf>)
@@ -37,7 +45,9 @@ Platform jual dan berbagi barang antarpenghuni kos. Barang lama, cerita baru.
 
 Versi `v4` memisahkan kode layanan ke `app/catalog.py` dan `app/reservation.py`. Setiap layanan mempunyai entrypoint dan target Docker sendiri. Image reservation tidak membawa kode katalog atau tampilan web. Keduanya dapat dibangun dan diperbarui secara terpisah melalui Compose.
 
-Kedua image `v4` sudah dibangun dan di-push ke ECR private pada 25 November 2026:
+`v4` adalah label versi image yang digunakan pada deployment ini. Tag yang sama digunakan untuk pasangan image catalog dan reservation; masing-masing tetap mempunyai image dan digest sendiri. Tag bersifat immutable di ECR, sehingga build berikutnya menggunakan tag baru.
+
+Kedua image `v4` sudah dibangun dan di-push ke ECR private:
 
 | Repository ECR | Tag |
 |---|---|
@@ -56,7 +66,7 @@ Komunikasi dan pemantauan layanan:
 
 ## Lingkungan proyek
 
-Deployment menggunakan akun AWS Academy pada region `us-east-1`. EC2 dibuat melalui lingkungan Cloud9 `KostCycleIDE`; database berada pada RDS `kostcycle-db`. Keduanya berada di akun lab yang sama. Lingkungan latihan kafe tetap terpisah.
+Deployment menggunakan akun AWS Academy pada region `us-east-1`. EC2 dibuat melalui lingkungan Cloud9 `KostCycleIDE`; database berada pada RDS `kostcycle-db`. Keduanya berada di akun lab yang sama.
 
 | Bagian | Teknologi | Lokasi |
 |---|---|---|
@@ -91,7 +101,7 @@ Data contoh lokal dibuat jika `SEED_DEMO=1` (default mode lokal). Akun Alya dan 
 
 ## Pengujian
 
-Pada 25 November 2026, 24 tes lokal lulus, termasuk satu tes integrasi yang menjalankan 17 pemeriksaan HTTP antara dua server dengan SQLite. Versi v4 juga melewati 17 pemeriksaan HTTP pada MySQL RDS baru. Uji AWS menghentikan container reservation: katalog dan health tetap 200, endpoint reservasi 503. Setelah container dinyalakan lagi, endpoint reservasi kembali 200. Log kedua layanan memiliki request ID `aws-microservices-v4` yang sama.
+Sebanyak 24 tes lokal lulus, termasuk satu tes integrasi yang menjalankan 17 pemeriksaan HTTP antara dua server dengan SQLite. Versi v4 juga melewati 17 pemeriksaan HTTP pada MySQL RDS. Pada uji gangguan, container reservation dihentikan: katalog dan health tetap 200, endpoint reservasi 503. Setelah container dinyalakan lagi, endpoint reservasi kembali 200. Log kedua layanan memiliki request ID `aws-microservices-v4` yang sama.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -103,11 +113,11 @@ Pengujian mencakup CRUD, otorisasi, CSRF, validasi, reservasi sendiri/ganda, pem
 ## Docker dan MySQL/RDS
 
 1. Salin `.env.example` ke `.env` dan isi endpoint MySQL, akun database khusus aplikasi, serta dua secret acak.
-2. Buat database `kostcycle` di RDS yang diizinkan lab; jangan mengubah database latihan `COFFEE`.
+2. Siapkan database `kostcycle` pada RDS MySQL dengan akun khusus aplikasi.
 3. Bangun dengan `docker compose build`, lakukan inisialisasi database sekali, lalu `docker compose up -d`.
 4. Periksa `docker compose ps` dan `/health`; hasil harus menyebut `mysql` pada AWS.
 
-`compose.yaml` menggunakan `127.0.0.1:8080` secara default. Siapkan `.env`, lalu jalankan inisialisasi sekali memakai `docker compose run --rm catalog python -m app.bootstrap` sebelum `docker compose up -d`. Pada database baru, akun inisialisasi perlu hak pembuatan tabel; akun runtime cukup SELECT, INSERT, UPDATE, DELETE. Jangan menjalankan inisialisasi pada database kafe.
+`compose.yaml` menggunakan `127.0.0.1:8080` secara default. Siapkan `.env`, lalu jalankan inisialisasi sekali memakai `docker compose run --rm catalog python -m app.bootstrap` sebelum `docker compose up -d`. Pada database baru, akun inisialisasi perlu hak pembuatan tabel; akun runtime cukup SELECT, INSERT, UPDATE, DELETE.
 
 Untuk EC2 khusus project, script deployment memeriksa marker `/etc/kostcycle-project`. Buat marker hanya setelah identitas instance diverifikasi. Akses internet langsung memerlukan pengaturan bind dan security group terpisah; marker tidak memberikan izin jaringan. Gunakan tunnel atau preview Cloud9 yang terautentikasi untuk demo pribadi.
 
@@ -217,7 +227,7 @@ IAM AWS mengatur API AWS, akun MySQL mengatur database, dan otorisasi aplikasi m
 
 Buat instance dengan identifier `kostcycle-db`, username admin `kostcycleadmin`, dan database awal `kostcycle`. Script `scripts/initialize-rds.py` menolak endpoint lain serta database yang sudah mempunyai tabel. Jalankan script memakai image catalog, dengan direktori private dipasang sebagai `/state`, berisi file `db-admin-password` berizin 600. Mount script sebagai `/run/init.py`, set `PYTHONPATH=/app` dan `DB_HOST` ke endpoint RDS, lalu jalankan `python /run/init.py`. Optional mount `/run/backup.sql` hanya untuk dump KostCycle yang telah diperiksa.
 
-Script membuat tabel/data demo jika tanpa dump, lalu membuat akun runtime terbatas dan menghasilkan `/state/app.env`. Salin file itu menjadi `.env` dengan izin 600. Password admin tidak dimasukkan ke `.env` runtime. Inisialisasi dilakukan satu kali; startup container tidak membuat tabel atau seed ulang. Jangan menjalankan script ini pada supplierdb latihan.
+Script membuat tabel/data demo jika tanpa dump, lalu membuat akun runtime terbatas dan menghasilkan `/state/app.env`. Salin file itu menjadi `.env` dengan izin 600. Password admin tidak dimasukkan ke `.env` runtime. Inisialisasi dilakukan satu kali; startup container tidak membuat tabel atau seed ulang.
 
 ### Hasil deployment
 
@@ -225,6 +235,6 @@ Bukti tersedia di [lampiran AWS](docs/Bukti_AWS_KostCycle.pdf). Folder [docs/evi
 
 ## Anggaran dan lab
 
-Proyek menggunakan satu EC2 khusus dan satu RDS kecil, terpisah dari latihan kafe. Aktifkan compute hanya saat pengerjaan dan demo. Cloud9 disetel berhenti otomatis setelah 30 menit tidak aktif; ini perlu diperhatikan ketika demo. Deployment menggunakan EC2, ECR, dan RDS tanpa penambahan ALB, NAT Gateway, atau ECS. Budget terakhir yang diamati saat sesi dimulai pada 25 November 2026: US$3,80 terpakai dari US$40; angka dapat terlambat diperbarui. Periksa kondisi aktual sebelum deployment dan akhiri sesi sesuai petunjuk lab setelah selesai. Penyimpanan tetap dapat menimbulkan biaya meskipun compute berhenti.
+Proyek menggunakan satu EC2 khusus dan satu RDS kecil. Aktifkan compute hanya saat pengerjaan dan demo. Cloud9 disetel berhenti otomatis setelah 30 menit tidak aktif; ini perlu diperhatikan ketika demo. Deployment menggunakan EC2, ECR, dan RDS tanpa penambahan ALB, NAT Gateway, atau ECS. Pantau sisa kredit melalui panel Learner Lab karena angka pemakaian dapat terlambat diperbarui. Penyimpanan tetap dapat menimbulkan biaya meskipun compute berhenti.
 
 Referensi: [ECR push image](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html), [ECR IAM](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-push-iam.html), [RDS biaya](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_OnDemandDBInstances.html).
