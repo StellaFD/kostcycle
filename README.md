@@ -2,7 +2,8 @@
 
 Platform jual dan berbagi barang antarpenghuni kos. Barang lama, cerita baru.
 
-**Penyusun:** Stella Florencia Doulim  
+**Penyusun:** Stella Florencia Doulim
+
 **NIM:** 24/542739/TK/60285
 **Jalur:** Track B (EC2 + Docker + ECR), ditambah RDS MySQL dari Track A.
 
