@@ -2,12 +2,19 @@
 
 Platform jual dan berbagi barang antarpenghuni kos. Barang lama, cerita baru.
 
-**Penyusun:** Stella Florencia Doulim · NIU 542739
+**Penyusun:** Stella Florencia Doulim  
+**NIM:** 24/542739/TK/60285
 **Jalur:** Track B (EC2 + Docker + ECR), ditambah RDS MySQL dari Track A.
 
 [Demo KostCycle melalui Cloud9](https://53d11ecee3fb4bd1b939f5dd1612dd54.vfs.cloud9.us-east-1.amazonaws.com/) memerlukan sesi AWS pemilik lingkungan. Buka sebagai tab sendiri, karena proteksi frame mencegah tampilan di dalam iframe IDE. EC2 berhenti otomatis setelah 30 menit Cloud9 tidak aktif.
 
 [CI berhasil untuk commit 3c5b2c9](https://github.com/StellaFD/kostcycle/actions/runs/45451460895): tes aplikasi dan build dua image.
+
+## Dokumentasi
+
+- [Design brief PDF](<docs/542739_Stella Florencia Doulim_CC.pdf>)
+- [Design brief Word](<docs/542739_Stella Florencia Doulim_CC.docx>)
+- [Diagram arsitektur](docs/arsitektur-kostcycle.png)
 
 ## Fitur
 
@@ -171,24 +178,9 @@ KostCycle mencakup katalog barang, pengelolaan akun, reservasi, pembatalan, dan 
 
 Arsitektur terdiri dari dua layanan pada EC2 dan satu RDS private. Image masing-masing layanan disimpan di ECR. CI membangun image untuk pemeriksaan; push ke ECR dan deployment dilakukan secara manual.
 
-```mermaid
-flowchart LR
-  Browser[Browser pengguna] -->|akses demo terautentikasi| Preview[Cloud9 preview atau tunnel]
-  Git[GitHub private] --> CI[CI test dan build dua image]
-  IAMSession[Sesi IAM sementara voclabs] -.->|API ECR| ECR[ECR private]
-  Build[Docker build dua target] -->|push| ECR
-  ECR -->|pull v4| Catalog
-  ECR -->|pull v4| Reservation
-  subgraph VPC[LabVPC us-east-1]
-    subgraph Server[EC2 khusus KostCycleIDE]
-      Preview --> Catalog[Catalog: UI, akun, CRUD barang]
-      Catalog -->|HTTP, signed identity, request ID| Reservation[Reservation: reservasi dan serah terima]
-    end
-    Catalog -->|MySQL 3306, akun aplikasi| RDS[(RDS private khusus kostcycle-db)]
-    Reservation -->|transaksi barang dan reservasi| RDS
-    DBSG[Security group DB: sumber hanya SG project] -.-> RDS
-  end
-```
+![Arsitektur KostCycle](docs/arsitektur-kostcycle.png)
+
+[Diagram yang dapat diedit](docs/arsitektur-kostcycle.svg). Ikon layanan menggunakan [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/).
 
 Cloud9 khusus: `53d11ecee3fb4bd1b939f5dd1612dd54`. EC2: `i-0cf5f5c917e9590d4`, Amazon Linux 2023, t3.small. Image disimpan di ECR, tidak membutuhkan laptop menyala. Tidak ada perubahan pada source aplikasi kafe atau Cloud9 MicroservicesIDE milik latihan awal.
 
