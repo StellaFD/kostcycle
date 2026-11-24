@@ -6,6 +6,7 @@ cd "$(dirname "$0")/.."
 version="${1:?Provide an immutable image version, for example v2}"
 [[ "$version" =~ ^[a-zA-Z0-9_.-]+$ ]] || { echo 'Invalid image version'; exit 1; }
 test -f .env || { echo 'Prepare .env first'; exit 1; }
+test -f /etc/kostcycle-project || { echo 'Use a dedicated project EC2. Create /etc/kostcycle-project after verifying this is not the cafe lab server.'; exit 1; }
 region="${AWS_DEFAULT_REGION:-us-east-1}"
 account_id="$(aws sts get-caller-identity --query Account --output text)"
 registry="$account_id.dkr.ecr.$region.amazonaws.com"
@@ -14,6 +15,9 @@ trap 'sudo docker logout "$registry" >/dev/null 2>&1 || true' EXIT
 for service in catalog reservation; do
   sudo docker pull "$registry/kostcycle-$service:$version"
 done
+# Initialize once, before workers start. An optional administrator env file can
+# provide DDL permissions while runtime accounts keep fewer privileges.
+sudo docker run --rm --env-file "${INIT_ENV_FILE:-.env}" "$registry/kostcycle-catalog:$version" python -m app.bootstrap
 sudo docker network inspect kostcycle >/dev/null 2>&1 || sudo docker network create kostcycle
 # Keep stopped prior containers for rollback, rather than deleting them.
 stamp="$(date +%Y%m%d%H%M%S)"
@@ -33,7 +37,7 @@ done
 test "$ready" = 1 || { echo 'Reservation startup failed. Inspect docker logs.'; exit 1; }
 sudo docker run -d --name kostcycle-catalog --restart unless-stopped --network kostcycle \
   --env-file .env -e SERVICE=catalog -e RESERVATION_URL=http://kostcycle-reservation:8000 \
-  -p "${APP_PORT:-8080}:8000" "$registry/kostcycle-catalog:$version"
+  -p "${APP_BIND:-127.0.0.1}:${APP_PORT:-8080}:8000" "$registry/kostcycle-catalog:$version"
 ready=0
 for attempt in $(seq 1 30); do
   if curl -fsS "http://127.0.0.1:${APP_PORT:-8080}/health"; then ready=1; break; fi

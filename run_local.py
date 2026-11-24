@@ -14,7 +14,10 @@ env.setdefault('DATABASE_URL', 'sqlite:///' + str(root / 'kostcycle.db'))
 env.setdefault('SEED_DEMO', '1')
 os.environ.update(env)
 # Initialize once before the two processes start, avoiding startup seed races.
-from app.main import app
+from app.main import create_app
+app = create_app()
+app.extensions['db_engine'].dispose()
+env['SKIP_DB_INIT'] = '1'
 
 children = []
 try:

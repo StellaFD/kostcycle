@@ -24,7 +24,19 @@ def login(app, who='alya'):
 
 def reservation_client(app, catalog_client):
     client = app.test_client()
-    client.set_cookie('session', catalog_client.get_cookie('session').value)
+    # The public service authenticates the browser. The internal service receives
+    # a short-lived identity, never the browser's cookie or session signing key.
+    from app.service_auth import sign_identity
+    from urllib.parse import urlsplit
+    with catalog_client.session_transaction() as browser_session:
+        uid = browser_session['uid']
+    original_open = client.open
+    def signed_open(path, *args, **kwargs):
+        method = kwargs.get('method', 'GET')
+        request_headers = dict(kwargs.pop('headers', {}))
+        request_headers['X-Service-Identity'] = sign_identity(uid, method, urlsplit(path).path, kwargs.get('json'))
+        return original_open(path, *args, headers=request_headers, **kwargs)
+    client.open = signed_open
     return client
 
 def headers(token):

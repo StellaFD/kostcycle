@@ -1,0 +1,28 @@
+name: Check KostCycle
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      - run: node --check app/static/app.js
+  images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [catalog, reservation]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --target ${{ matrix.service }} -t kostcycle-${{ matrix.service }}:check .
+      - name: Check service code boundary
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: |
+          docker run --rm kostcycle-$SERVICE:check python -c "from pathlib import Path; import os; s='$SERVICE'; other='reservation' if s=='catalog' else 'catalog'; assert Path('app/'+s+'.py').exists(); assert not Path('app/'+other+'.py').exists()"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build once and publish runtime-specific tags to two existing private repositories.
+# Build a separate image for each service and publish to existing repositories.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 version="${1:?Provide a new immutable version, for example v3}"
@@ -14,10 +14,9 @@ for service in catalog reservation; do
     exit 1
   fi
 done
-sudo docker build -t "kostcycle-base:$version" .
 aws ecr get-login-password --region "$region" | sudo docker login --username AWS --password-stdin "$registry"
 trap 'sudo docker logout "$registry" >/dev/null 2>&1 || true' EXIT
 for service in catalog reservation; do
-  sudo docker tag "kostcycle-base:$version" "$registry/kostcycle-$service:$version"
+  sudo docker build --target "$service" -t "$registry/kostcycle-$service:$version" .
   sudo docker push "$registry/kostcycle-$service:$version"
 done

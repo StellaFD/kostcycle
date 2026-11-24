@@ -3,6 +3,14 @@
 __pycache__
 .pytest_cache
 *.db
+*.db-*
 .env
+.env.*
+!.env.example
+.ops
+known_hosts
+*.pem
+*.zip
+.github
 evidence
 tests

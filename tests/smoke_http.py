@@ -19,7 +19,7 @@ def login(who):
     return client
 
 health = expect(requests.get(BASE+'/health', timeout=10), 200, 'catalog_health')
-assert health['database'] == 'mysql', health
+assert health['database'] == os.getenv('EXPECTED_DATABASE', 'mysql'), health
 seller, buyer = login('alya'), login('bima')
 data = {'name':'[UJI] Rak KostCycle','description':'Data pengujian koneksi AWS. Bukan penawaran nyata.',
         'category':'Furnitur','condition':'Baik','offer_type':'free','price':0,'location':'Area demo'}
