@@ -1,0 +1,18 @@
+{
+  "imageDetails": [
+    {
+      "registryId": "958472606040",
+      "repositoryName": "kostcycle-reservation",
+      "imageDigest": "sha256:a6dce0ffdee10cb7a6421f254908c32c3f2185ed0d0742a2d635c3fbae09700e",
+      "imageTags": [
+        "v4"
+      ],
+      "imageSizeInBytes": 63088488,
+      "imagePushedAt": "2026-11-24T17:39:22.871000+00:00",
+      "imageManifestMediaType": "application/vnd.docker.distribution.manifest.v2+json",
+      "artifactMediaType": "application/vnd.docker.container.image.v1+json",
+      "lastRecordedPullTime": "2026-11-24T17:42:51.615000+00:00",
+      "imageStatus": "ACTIVE"
+    }
+  ]
+}

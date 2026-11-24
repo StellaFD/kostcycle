@@ -1,0 +1,2 @@
+kostcycle-catalog 958472606040.dkr.ecr.us-east-1.amazonaws.com/kostcycle-catalog:v4 Up 3 minutes (healthy) 0.0.0.0:8080->8000/tcp, :::8080->8000/tcp
+kostcycle-reservation 958472606040.dkr.ecr.us-east-1.amazonaws.com/kostcycle-reservation:v4 Up About a minute (healthy) 8000/tcp

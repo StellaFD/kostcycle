@@ -1,0 +1,80 @@
+{
+  "SecurityGroups": [
+    {
+      "GroupId": "sg-0e9c7adbd27b31617",
+      "IpPermissionsEgress": [
+        {
+          "IpProtocol": "-1",
+          "UserIdGroupPairs": [],
+          "IpRanges": [
+            {
+              "CidrIp": "0.0.0.0/0"
+            }
+          ],
+          "Ipv6Ranges": [],
+          "PrefixListIds": []
+        }
+      ],
+      "VpcId": "vpc-0401ea1c9f387ce86",
+      "SecurityGroupArn": "arn:aws:ec2:us-east-1:958472606040:security-group/sg-0e9c7adbd27b31617",
+      "OwnerId": "958472606040",
+      "GroupName": "aws-cloud9-KostCycleIDE-53d11ecee3fb4bd1b939f5dd1612dd54-InstanceSecurityGroup-e0zp3FJyQydV",
+      "Description": "Security group for AWS Cloud9 environment aws-cloud9-KostCycleIDE-53d11ecee3fb4bd1b939f5dd1612dd54",
+      "IpPermissions": [
+        {
+          "IpProtocol": "tcp",
+          "FromPort": 22,
+          "ToPort": 22,
+          "UserIdGroupPairs": [],
+          "IpRanges": [
+            {
+              "CidrIp": "35.172.155.192/27"
+            },
+            {
+              "CidrIp": "35.172.155.96/27"
+            }
+          ],
+          "Ipv6Ranges": [],
+          "PrefixListIds": []
+        }
+      ]
+    },
+    {
+      "GroupId": "sg-0355f6b1b9a0ec3b7",
+      "IpPermissionsEgress": [
+        {
+          "IpProtocol": "-1",
+          "UserIdGroupPairs": [],
+          "IpRanges": [
+            {
+              "CidrIp": "0.0.0.0/0"
+            }
+          ],
+          "Ipv6Ranges": [],
+          "PrefixListIds": []
+        }
+      ],
+      "VpcId": "vpc-0401ea1c9f387ce86",
+      "SecurityGroupArn": "arn:aws:ec2:us-east-1:958472606040:security-group/sg-0355f6b1b9a0ec3b7",
+      "OwnerId": "958472606040",
+      "GroupName": "kostcycle-db",
+      "Description": "KostCycle MySQL from application only",
+      "IpPermissions": [
+        {
+          "IpProtocol": "tcp",
+          "FromPort": 3306,
+          "ToPort": 3306,
+          "UserIdGroupPairs": [
+            {
+              "UserId": "958472606040",
+              "GroupId": "sg-0e9c7adbd27b31617"
+            }
+          ],
+          "IpRanges": [],
+          "Ipv6Ranges": [],
+          "PrefixListIds": []
+        }
+      ]
+    }
+  ]
+}

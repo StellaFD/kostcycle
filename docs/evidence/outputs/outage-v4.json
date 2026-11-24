@@ -1,0 +1,9 @@
+{
+  "reservation_stopped": true,
+  "statuses": {
+    "/health": 200,
+    "/api/barang": 200,
+    "/api/reservasi": 503
+  },
+  "passed": true
+}

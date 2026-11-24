@@ -1,0 +1,13 @@
+{
+  "ID": "i-0cf5f5c917e9590d4",
+  "Type": "t3.small",
+  "State": "running",
+  "IP": "100.57.159.3",
+  "SG": [
+    {
+      "GroupId": "sg-0e9c7adbd27b31617",
+      "GroupName": "aws-cloud9-KostCycleIDE-53d11ecee3fb4bd1b939f5dd1612dd54-InstanceSecurityGroup-e0zp3FJyQydV"
+    }
+  ],
+  "Role": null
+}

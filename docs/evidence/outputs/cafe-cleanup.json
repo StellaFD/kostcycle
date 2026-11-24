@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-25",
+  "cafe_source_unchanged": true,
+  "cafe_home_http": 200,
+  "cafe_suppliers_http": 200,
+  "coffee_suppliers_table_present": true,
+  "kostcycle_old_schema_removed": true,
+  "kostcycle_old_account_removed": true,
+  "old_docker_service": "inactive",
+  "old_port_8080_rule_count": 0,
+  "backups": "Private server directory and ignored local .ops; not included in submission",
+  "note": "Official Docker binaries and image cache retained, daemon inactive"
+}

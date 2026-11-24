@@ -8,6 +8,11 @@ __pycache__/
 !.env.example
 *.pem
 evidence/
+!docs/evidence/
+!docs/evidence/**
+*.sql
+*.key
+.aws/
 *.zip
 known_hosts
 .ops/

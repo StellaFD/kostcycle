@@ -16,6 +16,7 @@ Platform jual dan berbagi barang antarpenghuni kos. Barang lama, cerita baru.
 - [Design brief PDF](<docs/542739_Stella Florencia Doulim_CC.pdf>)
 - [Design brief Word](<docs/542739_Stella Florencia Doulim_CC.docx>)
 - [Diagram arsitektur](docs/arsitektur-kostcycle.png)
+- [Bukti AWS PDF](docs/Bukti_AWS_KostCycle.pdf) dan [screenshot serta hasil tes](docs/evidence/README.md)
 
 ## Fitur
 
@@ -64,7 +65,7 @@ Deployment menggunakan akun AWS Academy pada region `us-east-1`. EC2 dibuat mela
 | Backend reservasi | Python, Flask, Gunicorn | Container reservation di EC2 lab |
 | Data | MySQL 8.4.11 | RDS private di lab |
 | Image | Dua image Docker versi v4 | Dua repository ECR private di lab |
-| Source dan pemeriksaan kode | Git, GitHub Actions | Repository private GitHub |
+| Source dan pemeriksaan kode | Git, GitHub Actions | Repository GitHub |
 
 Koneksi aplikasi dan data pada deployment menggunakan AWS lab. SQLite serta proses lokal hanya digunakan untuk pengembangan dan pengujian.
 
@@ -183,11 +184,13 @@ Arsitektur terdiri dari dua layanan pada EC2 dan satu RDS private. Image masing-
 
 [Diagram yang dapat diedit](docs/arsitektur-kostcycle.svg). Ikon layanan menggunakan [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/).
 
-Cloud9 khusus: `53d11ecee3fb4bd1b939f5dd1612dd54`. EC2: `i-0cf5f5c917e9590d4`, Amazon Linux 2023, t3.small. Image disimpan di ECR, tidak membutuhkan laptop menyala. Tidak ada perubahan pada source aplikasi kafe atau Cloud9 MicroservicesIDE milik latihan awal.
+Cloud9 `KostCycleIDE` menyediakan lingkungan pengembangan dan jalur preview terautentikasi. Compute aplikasi tetap satu EC2 Amazon Linux 2023 bertipe t3.small di Public Subnet1, LabVPC. Kedua backend berjalan dalam container berbeda pada EC2 yang sama; penyimpanan data berada pada RDS MySQL terpisah. Frontend disajikan oleh catalog, sehingga tidak memerlukan server frontend tambahan.
+
+Diagram menggambarkan komponen yang telah dijalankan pada versi v4. Garis HTTP dan MySQL menunjukkan alur aplikasi; jalur ECR dan IAM digunakan untuk pengelolaan deployment. Pemisahan layanan dilakukan pada proses, kode, image, dan jaringan Docker, sedangkan host EC2 dan skema database masih digunakan bersama.
 
 ### Alur request dan data
 
-1. Browser meminta UI dan API barang ke catalog melalui port 8080 dan jalur akses demo yang dikonfigurasi.
+1. Browser mengakses HTTPS preview Cloud9 dengan sesi AWS yang berhak. Preview meneruskan permintaan UI dan API ke catalog pada host port 8080 di EC2.
 2. Catalog membaca/menulis tabel barang pada database `kostcycle` di RDS melalui port 3306.
 3. Untuk reservasi, catalog meneruskan permintaan HTTP ke reservation di jaringan Docker, menyertakan identitas pengguna yang ditandatangani serta X-Request-ID; cookie dan CSRF tetap diperiksa di catalog.
 4. Reservation memperbarui status barang dan reservasi dalam satu transaksi MySQL. Hasil kembali melalui catalog ke browser.
@@ -218,7 +221,7 @@ Script membuat tabel/data demo jika tanpa dump, lalu membuat akun runtime terbat
 
 ### Hasil deployment
 
-Arsip proyek menyertakan folder `aws-evidence/v4`, berisi metadata EC2, dua image ECR, RDS, security group, status container, jumlah baris saat migrasi, 17 hasil tes HTTP, hasil uji gangguan, dan log request antarlayanan. Data SQL, password, cookie, token, kunci SSH, dan file .env tidak disertakan.
+Bukti tersedia di [lampiran AWS](docs/Bukti_AWS_KostCycle.pdf). Folder [docs/evidence](docs/evidence/README.md) menyimpan screenshot asli dan hasil pemeriksaan EC2, dua image ECR, RDS, security group, status container, migrasi, 17 pemeriksaan HTTP, uji gangguan, serta log request antarlayanan. Tag kepemilikan AWS dihilangkan dari salinan metadata JSON untuk menjaga privasi. File SQL, password, cookie, token, kunci SSH, dan .env tidak disertakan.
 
 ## Anggaran dan lab
 

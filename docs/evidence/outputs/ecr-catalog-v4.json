@@ -1,0 +1,18 @@
+{
+  "imageDetails": [
+    {
+      "registryId": "958472606040",
+      "repositoryName": "kostcycle-catalog",
+      "imageDigest": "sha256:930239e9656a6b6c1526e2d884c97671d4d7666028b73b8a76888a07f64d3b05",
+      "imageTags": [
+        "v4"
+      ],
+      "imageSizeInBytes": 63104097,
+      "imagePushedAt": "2026-11-24T17:39:18.316000+00:00",
+      "imageManifestMediaType": "application/vnd.docker.distribution.manifest.v2+json",
+      "artifactMediaType": "application/vnd.docker.container.image.v1+json",
+      "lastRecordedPullTime": "2026-11-24T17:42:51.325000+00:00",
+      "imageStatus": "ACTIVE"
+    }
+  ]
+}

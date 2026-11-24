@@ -1,0 +1,18 @@
+{
+  "Name": "kostcycle-db",
+  "Status": "available",
+  "Class": "db.t3.micro",
+  "Engine": "mysql",
+  "Version": "8.4.11",
+  "Endpoint": "kostcycle-db.ceuimbheoqea.us-east-1.rds.amazonaws.com",
+  "Public": false,
+  "MultiAZ": false,
+  "Storage": 20,
+  "Encrypted": false,
+  "SG": [
+    {
+      "VpcSecurityGroupId": "sg-0355f6b1b9a0ec3b7",
+      "Status": "active"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "base_url": "http://127.0.0.1:8000",
+  "database": "mysql",
+  "passed": 17,
+  "checks": [
+    {
+      "check": "catalog_health",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "check": "login_alya",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "check": "login_bima",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "check": "create_item",
+      "status": 201,
+      "passed": true
+    },
+    {
+      "check": "reject_other_owner_edit",
+      "status": 403,
+      "passed": true
+    },
+    {
+      "check": "update_item",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "check": "read_item",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "check": "delete_unreserved_item",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "check": "deleted_item_missing",
+      "status": 404,
+      "passed": true
+    },
+    {
+      "check": "create_reservation_test_item",
+      "status": 201,
+      "passed": true
+    },
+    {
+      "check": "concurrent_reservation_one_winner_mysql",
+      "passed": true
+    },
+    {
+      "check": "buyer_cannot_complete",
+      "status": 403,
+      "passed": true
+    },
+    {
+      "check": "cancel_reservation",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "check": "reserve_again",
+      "status": 201,
+      "passed": true
+    },
+    {
+      "check": "owner_completes_handover",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "check": "read_completed_item",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "check": "completed_item_cannot_be_reserved",
+      "status": 409,
+      "passed": true
+    }
+  ]
+}
