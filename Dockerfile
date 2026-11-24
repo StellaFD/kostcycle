@@ -7,4 +7,4 @@ COPY app ./app
 RUN chown -R appuser:appuser /app
 USER appuser
 EXPOSE 8000
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--access-logfile", "-", "app.main:app"]
+CMD ["sh", "-c", "python -m app.bootstrap && SKIP_DB_INIT=1 exec gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 4 --access-logfile - app.main:app"]

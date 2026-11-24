@@ -21,9 +21,10 @@ def create_app(config=None):
         app.config.update(config)
     service = app.config.get('SERVICE', os.getenv('SERVICE', 'catalog'))
     engine, Session = connect()
-    Base.metadata.create_all(engine)
-    if os.getenv('SEED_DEMO', '1') == '1':
-        seed(Session)
+    if os.getenv('SKIP_DB_INIT') != '1':
+        Base.metadata.create_all(engine)
+        if os.getenv('SEED_DEMO', '1') == '1':
+            seed(Session)
     app.extensions.update(db_engine=engine, db_session=Session)
 
     def error(message, status=400):

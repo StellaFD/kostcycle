@@ -58,6 +58,17 @@ Pengujian mencakup CRUD, otorisasi, CSRF, validasi, reservasi sendiri/ganda, pem
 
 Gunakan akun DB khusus dengan hak hanya pada `kostcycle.*`. `.env`, kunci SSH, token AWS, dan password tidak boleh masuk Git/ECR. Container berjalan sebagai user non-root. Untuk produksi, aktifkan HTTPS, `COOKIE_SECURE=1`, nonaktifkan seed demo, gunakan pengelolaan secret dan pembatasan percobaan login. Demo lab HTTP hanya untuk data contoh.
 
+### Deployment lab dari ECR
+
+Pada EC2 Linux dengan Docker, konfigurasi `.env` serta kredensial AWS **sementara** dari lab. Gunakan IAM role yang sesuai jika tersedia; jangan memasang role EMR untuk aplikasi ini. Pada sesi lab yang diperiksa, EC2 tidak memiliki instance profile dan `LabRole` tidak ditemukan, sehingga push/pull dilakukan operator melalui sesi `voclabs` sementara.
+
+```bash
+bash scripts/publish-images.sh v3  # Gunakan versi baru; tag ECR immutable.
+bash scripts/deploy-ecr.sh v3
+```
+
+Script deployment menjalankan catalog di port **8080**, reservation hanya di jaringan Docker, dan menyimpan container sebelumnya dalam keadaan berhenti untuk rollback. Script membersihkan token login Docker setelah selesai. Perubahan security group untuk akses demo dilakukan terpisah; RDS tetap private. Mode Compose tetap tersedia untuk lingkungan yang memiliki Docker Compose.
+
 ## API
 
 | Metode | Endpoint | Akses |
@@ -89,6 +100,28 @@ Contoh body barang:
 ## Lingkup Week 12
 
 Desain dua layanan, satu entitas CRUD utama (`barang`), Docker image, EC2, ECR, koneksi database, dan README. Fitur reservasi menjadi demonstrasi tambahan. Laporan akhir dibuat setelah implementasi AWS terverifikasi. Belum ada payment gateway, chat, unggah foto, pengiriman, atau transaksi uang nyata.
+
+## Arsitektur implementasi
+
+```mermaid
+flowchart LR
+  Laptop[Browser mahasiswa] -->|HTTP 8080, IP mahasiswa saja| Catalog
+  Git[GitHub private] -->|source terkontrol| Build[Docker build di EC2]
+  Build -->|push oleh sesi voclabs sementara| ECR[ECR private: dua repository]
+  ECR -->|pull image| Catalog
+  ECR -->|pull image| Reservation
+  subgraph VPC[LabVPC us-east-1]
+    subgraph EC2[EC2 yang sudah ada / public subnet]
+      Catalog[catalog container]
+      Reservation[reservation container]
+      Catalog -->|HTTP internal + token internal| Reservation
+    end
+    Catalog -->|MySQL 3306| RDS[(RDS MySQL private / kostcycle)]
+    Reservation -->|transaksi atomik| RDS
+  end
+```
+
+Database `COFFEE` dan aplikasi latihan bawaan pada port 80 dipertahankan. KostCycle memakai database `kostcycle` dan port 8080. EC2 Cloud9 yang sudah berhenti tidak dijalankan untuk deployment ini. Link aplikasi menggunakan IP publik EC2; IP dan izin sumber perlu diperiksa lagi setelah sesi lab atau jaringan laptop berubah.
 
 ## Anggaran dan lab
 
