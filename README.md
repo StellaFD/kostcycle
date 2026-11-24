@@ -2,7 +2,7 @@
 
 Platform jual dan berbagi barang antarpenghuni kos. Barang lama, cerita baru.
 
-**Pemilik proyek:** Stella Florencia Doulim · NIU 542739  
+**Penyusun:** Stella Florencia Doulim · NIU 542739
 **Jalur:** Track B (EC2 + Docker + ECR), ditambah RDS MySQL dari Track A.
 
 [Demo KostCycle melalui Cloud9](https://53d11ecee3fb4bd1b939f5dd1612dd54.vfs.cloud9.us-east-1.amazonaws.com/) memerlukan sesi AWS pemilik lingkungan. Buka sebagai tab sendiri, karena proteksi frame mencegah tampilan di dalam iframe IDE. EC2 berhenti otomatis setelah 30 menit Cloud9 tidak aktif.
@@ -23,47 +23,48 @@ Platform jual dan berbagi barang antarpenghuni kos. Barang lama, cerita baru.
 
 | Layanan | Tanggung jawab | Akses |
 |---|---|---|
-| catalog | UI, akun, CRUD barang, proxy ke reservation | Port publik aplikasi |
+| catalog | UI, akun, CRUD barang, proxy ke reservation | Host port 8080 melalui preview Cloud9 |
 | reservation | Reservasi dan transaksi status barang | Jaringan internal Docker, tanpa published port |
 
 Versi `v4` memisahkan kode layanan ke `app/catalog.py` dan `app/reservation.py`. Setiap layanan mempunyai entrypoint dan target Docker sendiri. Image reservation tidak membawa kode katalog atau tampilan web. Keduanya dapat dibangun dan diperbarui secara terpisah melalui Compose.
 
 Kedua image `v4` sudah dibangun dan di-push ke ECR private pada 25 November 2026:
 
-| Repository | Digest v4 |
+| Repository ECR | Tag |
 |---|---|
-| kostcycle-catalog | `sha256:930239e9656a6b6c1526e2d884c97671d4d7666028b73b8a76888a07f64d3b05` |
-| kostcycle-reservation | `sha256:a6dce0ffdee10cb7a6421f254908c32c3f2185ed0d0742a2d635c3fbae09700e` |
+| kostcycle-catalog | `v4` |
+| kostcycle-reservation | `v4` |
 
-Rancangan ini memakai dua layanan yang berkomunikasi melalui HTTP, dengan satu RDS MySQL bersama. Database bersama dipilih agar perubahan status barang dan reservasi tetap dalam satu transaksi. Konsekuensinya, pemisahan data belum penuh: kedua layanan masih bergantung pada skema yang sama, dan gangguan RDS memengaruhi keduanya. Satu EC2 juga masih menjadi titik kegagalan bersama. Ini adalah tahap awal microservices, bukan klaim arsitektur yang sudah sepenuhnya independen.
+Rancangan ini memakai dua layanan yang berkomunikasi melalui HTTP, dengan satu RDS MySQL bersama. Database bersama dipilih agar perubahan status barang dan reservasi tetap dalam satu transaksi. Konsekuensinya, pemisahan data belum penuh: kedua layanan masih bergantung pada skema yang sama, dan gangguan RDS memengaruhi keduanya. Satu EC2 juga masih menjadi titik kegagalan bersama.
 
-Tambahan di atas minimum Week 12:
+Komunikasi dan pemantauan layanan:
 
 - Identitas internal ditandatangani, berlaku 30 detik, dan terikat pada metode, path, serta isi JSON. Cookie pengguna tidak diteruskan ke reservation.
 - `X-Request-ID` menghubungkan log kedua layanan; log mencatat layanan, metode, path, status, dan durasi tanpa isi request atau token.
 - `/live` memeriksa proses; `/health` memeriksa koneksi database.
 - Timeout HTTP internal dan uji gangguan menunjukkan katalog tetap dapat digunakan saat reservation terputus, selama database tersedia.
-- Workflow GitHub Actions menguji kode dan membangun dua target image. Ini CI; deployment AWS masih dijalankan operator, belum CD otomatis.
+- Workflow GitHub Actions menguji kode dan membangun dua target image. Deployment AWS dijalankan secara manual setelah pengujian berhasil.
 
-## Pemetaan kriteria tugas Week 12
+## Lingkungan proyek
 
-Tabel ini mengikuti slide Week 12. Versi v4 sudah berjalan pada EC2 dan RDS khusus pada 25 November 2026. Bukti v4 disimpan terpisah dari v3.
+Deployment menggunakan akun AWS Academy pada region `us-east-1`. EC2 dibuat melalui lingkungan Cloud9 `KostCycleIDE`; database berada pada RDS `kostcycle-db`. Keduanya berada di akun lab yang sama. Lingkungan latihan kafe tetap terpisah.
 
-| Perintah pada slide | Pemenuhan KostCycle | Status |
+| Bagian | Teknologi | Lokasi |
 |---|---|---|
-| EC2 + Docker + ECR | EC2 khusus melalui KostCycleIDE, Docker 25.0.14, dua repository ECR | Selesai, dua container healthy |
-| Two planned services | Catalog dan reservation, kode dan image terpisah | Selesai, diuji lokal dan AWS |
-| Build one Docker image | Dua target image berbeda dibangun dan di-push | Selesai di ECR |
-| Choose a use case | Jual/berikan barang antarpenghuni kos | Selesai |
-| Diagram: request/data flow, IAM, network | Diagram deployment di bawah | Sesuai konfigurasi v4 yang diuji |
-| 1 entity dan CRUD endpoints | Entitas utama barang dan API POST/GET/PUT/DELETE | Diuji |
-| AWS Learner Lab | Lab proyek AWS Academy, region us-east-1 | Aktif; izin layanan terbatas |
-| Git repo + README | Source, Dockerfile, deployment plan, commits | Tersedia |
-| Basic resources and connectivity | EC2, ECR, RDS private | 17 pemeriksaan HTTP MySQL, uji gangguan, dan uji browser berhasil |
-| Design brief 1–2 halaman | Bahan use case, track, entitas, dan API tersedia | Dokumen pengumpulan belum dibuat |
-| AWS evidence | Metadata image dan hasil tes | Metadata dan keluaran tes v4 tersedia; susunan screenshot untuk laporan belum dibuat |
+| Frontend | HTML, CSS, JavaScript | Berkas disajikan oleh catalog di EC2; JavaScript berjalan di browser |
+| Backend katalog | Python, Flask, Gunicorn | Container catalog di EC2 lab |
+| Backend reservasi | Python, Flask, Gunicorn | Container reservation di EC2 lab |
+| Data | MySQL 8.4.11 | RDS private di lab |
+| Image | Dua image Docker versi v4 | Dua repository ECR private di lab |
+| Source dan pemeriksaan kode | Git, GitHub Actions | Repository private GitHub |
 
-Lingkungan lama menggunakan EC2 `MonolithicAppServer` dan skema tambahan pada `supplierdb`. Pada 25 November, dua container KostCycle di server tersebut dihentikan untuk pemindahan. Halaman kafe dan daftar supplier tetap HTTP 200. Cadangan data KostCycle berisi 2 users, 9 items, dan 5 reservations. Data dipulihkan ke RDS baru dengan jumlah yang sama sebelum tes. Setelah verifikasi, container KostCycle lama dihapus, layanan Docker khusus KostCycle dimatikan, skema serta akun KostCycle pada supplierdb dihapus, dan aturan port 8080 tambahan ditutup. Source aplikasi kafe tidak berubah; halaman utama dan daftar supplier tetap HTTP 200. Arsip sumber serta SQL lama disimpan di folder cadangan pribadi pada server lama. Binary Docker dan cache image lama masih tersimpan, tetapi daemon-nya tidak aktif.
+Koneksi aplikasi dan data pada deployment menggunakan AWS lab. SQLite serta proses lokal hanya digunakan untuk pengembangan dan pengujian.
+
+### Port container
+
+Catalog menggunakan pemetaan host `8080` ke port `8000` di dalam container. Reservation mendengarkan pada port `8000` di jaringan Docker tanpa pemetaan ke port host. Catalog mengaksesnya melalui alamat `http://kostcycle-reservation:8000` pada deployment ECR, atau `http://reservation:8000` pada Compose.
+
+Tidak adanya published port pada reservation tidak menghalangi komunikasi antarlayanan. Akses browser masuk melalui catalog, lalu permintaan reservasi diteruskan melalui jaringan Docker. Perintah `EXPOSE 8000` pada Dockerfile mencatat port aplikasi; pemetaan ke host ditentukan saat container dijalankan.
 
 ## Menjalankan lokal tanpa Docker
 
@@ -81,8 +82,7 @@ Data contoh lokal dibuat jika `SEED_DEMO=1` (default mode lokal). Akun Alya dan 
 
 ## Pengujian
 
-Pada 25 November 2026, 24 tes lulus, termasuk 17 pemeriksaan HTTP yang dijalankan di antara dua server lokal menggunakan SQLite. Versi v4 juga melewati 17 pemeriksaan HTTP pada MySQL RDS baru. Uji AWS menghentikan container reservation: katalog dan health tetap 200, endpoint reservasi 503. Setelah container dinyalakan lagi, endpoint reservasi kembali 200. Log kedua layanan memiliki request ID `aws-microservices-v4` yang sama.
-
+Pada 25 November 2026, 24 tes lokal lulus, termasuk satu tes integrasi yang menjalankan 17 pemeriksaan HTTP antara dua server dengan SQLite. Versi v4 juga melewati 17 pemeriksaan HTTP pada MySQL RDS baru. Uji AWS menghentikan container reservation: katalog dan health tetap 200, endpoint reservasi 503. Setelah container dinyalakan lagi, endpoint reservasi kembali 200. Log kedua layanan memiliki request ID `aws-microservices-v4` yang sama.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -102,11 +102,11 @@ Pengujian mencakup CRUD, otorisasi, CSRF, validasi, reservasi sendiri/ganda, pem
 
 Untuk EC2 khusus project, script deployment memeriksa marker `/etc/kostcycle-project`. Buat marker hanya setelah identitas instance diverifikasi. Akses internet langsung memerlukan pengaturan bind dan security group terpisah; marker tidak memberikan izin jaringan. Gunakan tunnel atau preview Cloud9 yang terautentikasi untuk demo pribadi.
 
-Gunakan akun DB khusus dengan hak hanya pada `kostcycle.*`. `.env`, kunci SSH, token AWS, dan password tidak boleh masuk Git/ECR. Container berjalan sebagai user non-root. Untuk produksi, aktifkan HTTPS, `COOKIE_SECURE=1`, nonaktifkan seed demo, gunakan pengelolaan secret dan pembatasan percobaan login. Demo lab HTTP hanya untuk data contoh.
+Gunakan akun DB khusus dengan hak hanya pada `kostcycle.*`. `.env`, kunci SSH, token AWS, dan password tidak boleh masuk Git/ECR. Container berjalan sebagai user non-root. Konfigurasi keamanan dan keterbatasan demo dicatat pada bagian IAM dan jaringan.
 
 ### Deployment lab dari ECR
 
-Pada EC2 Linux dengan Docker, konfigurasi `.env` serta kredensial AWS **sementara** dari lab. Gunakan IAM role yang sesuai jika tersedia; jangan memasang role EMR untuk aplikasi ini. EC2 khusus project tidak memiliki instance profile. Push/pull dilakukan operator melalui kredensial sementara yang dikelola Cloud9 untuk sesi `voclabs`. Aplikasi yang sudah berjalan tidak memerlukan kredensial AWS.
+Pada EC2 Linux dengan Docker, konfigurasi `.env` serta kredensial AWS **sementara** dari lab. Gunakan IAM role yang sesuai jika tersedia; EC2 proyek tidak memiliki instance profile; tidak ada IAM role aplikasi baru yang dibuat. Push/pull menggunakan kredensial sementara yang dikelola Cloud9 untuk sesi `voclabs`. Aplikasi yang sudah berjalan tidak memerlukan kredensial AWS.
 
 ```bash
 bash scripts/publish-images.sh v5  # Pilih tag baru; v4 sudah immutable di ECR.
@@ -117,7 +117,7 @@ Script deployment menggunakan `127.0.0.1:8080` secara default. Pada deployment C
 
 ## Entitas CRUD utama: barang
 
-Nama API `barang` dipetakan ke tabel `items`. Satu entitas ini memenuhi bagian desain entitas dan CRUD. Tabel `users` serta `reservations` mendukung akun dan alur reservasi tambahan.
+Entitas utama adalah barang, disimpan pada tabel `items` dan diakses melalui API `/api/barang`. Tabel `users` menyimpan akun, sedangkan `reservations` menyimpan pemesanan dan riwayat serah terima.
 
 | Field | Tipe | Aturan |
 |---|---|---|
@@ -163,19 +163,19 @@ Contoh body barang:
 {"name":"Rak buku tiga tingkat","description":"Kokoh, ada bekas pemakaian ringan.","category":"Furnitur","condition":"Baik","offer_type":"sale","price":75000,"location":"Pogung, Sleman"}
 ```
 
-## Lingkup Week 12
+## Ruang lingkup
 
-Desain dua layanan, satu entitas CRUD utama (`barang`), Docker image, EC2, ECR, koneksi database, dan README. Fitur reservasi menjadi demonstrasi tambahan. Laporan akhir dibuat setelah implementasi AWS terverifikasi. Belum ada payment gateway, chat, unggah foto, pengiriman, atau transaksi uang nyata.
+KostCycle mencakup katalog barang, pengelolaan akun, reservasi, pembatalan, dan konfirmasi serah terima langsung. Data serta ilustrasi yang digunakan merupakan contoh. Transaksi pembayaran dan pengiriman berada di luar ruang lingkup proyek.
 
-## Arsitektur implementasi v4
+## Arsitektur
 
-Diagram berikut menunjukkan deployment khusus KostCycle. Server kafe berada di luar deployment ini. EC2, ECR, dan RDS pada diagram sudah terhubung dan diuji. CI membangun image untuk pemeriksaan; push ECR dan deployment masih dilakukan operator.
+Arsitektur terdiri dari dua layanan pada EC2 dan satu RDS private. Image masing-masing layanan disimpan di ECR. CI membangun image untuk pemeriksaan; push ke ECR dan deployment dilakukan secara manual.
 
 ```mermaid
 flowchart LR
-  Browser[Browser mahasiswa] -->|akses demo terautentikasi| Preview[Cloud9 preview atau tunnel]
+  Browser[Browser pengguna] -->|akses demo terautentikasi| Preview[Cloud9 preview atau tunnel]
   Git[GitHub private] --> CI[CI test dan build dua image]
-  Operator[Sesi sementara operator voclabs] -.->|API ECR| ECR[ECR private]
+  IAMSession[Sesi IAM sementara voclabs] -.->|API ECR| ECR[ECR private]
   Build[Docker build dua target] -->|push| ECR
   ECR -->|pull v4| Catalog
   ECR -->|pull v4| Reservation
@@ -204,7 +204,7 @@ Cloud9 khusus: `53d11ecee3fb4bd1b939f5dd1612dd54`. EC2: `i-0cf5f5c917e9590d4`, A
 
 | Bagian | Konfigurasi yang diperiksa |
 |---|---|
-| Operator | Sesi sementara voclabs melalui Cloud9; tidak dimasukkan ke image atau Git |
+| Akses API AWS | Sesi IAM sementara voclabs melalui Cloud9; kredensial tidak disimpan dalam image atau Git |
 | EC2 role | Tidak ada instance profile pada EC2 project |
 | EC2 | t3.small, Amazon Linux 2023, Public Subnet1 di LabVPC |
 | SG EC2 | `sg-0e9c7adbd27b31617`; SSH dari rentang layanan Cloud9 saja; tidak ada inbound 8080 dari internet |
@@ -223,12 +223,12 @@ Buat instance dengan identifier `kostcycle-db`, username admin `kostcycleadmin`,
 
 Script membuat tabel/data demo jika tanpa dump, lalu membuat akun runtime terbatas dan menghasilkan `/state/app.env`. Salin file itu menjadi `.env` dengan izin 600. Password admin tidak dimasukkan ke `.env` runtime. Inisialisasi dilakukan satu kali; startup container tidak membuat tabel atau seed ulang. Jangan menjalankan script ini pada supplierdb latihan.
 
-### Bukti yang disimpan
+### Hasil deployment
 
-Arsip source pengumpulan menyertakan folder `aws-evidence/v4`, berisi metadata EC2, dua image ECR, RDS, security group, status container, jumlah baris saat migrasi, 17 hasil tes HTTP, hasil uji gangguan, dan log request antarlayanan. Data SQL, password, cookie, token, kunci SSH, dan file .env tidak disertakan.
+Arsip proyek menyertakan folder `aws-evidence/v4`, berisi metadata EC2, dua image ECR, RDS, security group, status container, jumlah baris saat migrasi, 17 hasil tes HTTP, hasil uji gangguan, dan log request antarlayanan. Data SQL, password, cookie, token, kunci SSH, dan file .env tidak disertakan.
 
 ## Anggaran dan lab
 
-Gunakan satu EC2 khusus dan satu RDS kecil untuk memisahkan project dari latihan kafe. Aktifkan compute hanya saat pengerjaan dan demo. Cloud9 disetel berhenti otomatis setelah 30 menit tidak aktif; ini perlu diperhatikan ketika demo. Hindari ALB/NAT Gateway/ECS untuk deployment minimum ini. Budget terakhir yang diamati saat sesi dimulai pada 25 November 2026: US$3,80 terpakai dari US$40; angka dapat terlambat diperbarui. Periksa kondisi aktual sebelum deployment dan akhiri sesi sesuai petunjuk lab setelah selesai. Penyimpanan tetap dapat menimbulkan biaya meskipun compute berhenti.
+Proyek menggunakan satu EC2 khusus dan satu RDS kecil, terpisah dari latihan kafe. Aktifkan compute hanya saat pengerjaan dan demo. Cloud9 disetel berhenti otomatis setelah 30 menit tidak aktif; ini perlu diperhatikan ketika demo. Deployment menggunakan EC2, ECR, dan RDS tanpa penambahan ALB, NAT Gateway, atau ECS. Budget terakhir yang diamati saat sesi dimulai pada 25 November 2026: US$3,80 terpakai dari US$40; angka dapat terlambat diperbarui. Periksa kondisi aktual sebelum deployment dan akhiri sesi sesuai petunjuk lab setelah selesai. Penyimpanan tetap dapat menimbulkan biaya meskipun compute berhenti.
 
 Referensi: [ECR push image](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html), [ECR IAM](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-push-iam.html), [RDS biaya](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_OnDemandDBInstances.html).
